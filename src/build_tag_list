@@ -1,4 +1,5 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
+if [ "${BASH_VERSINFO}" -lt 4 ]; then echo "bash-4.0+ required" >&2; exit 1; fi
 
 # exit on failure
 set -e
@@ -15,8 +16,8 @@ fi
 dir=$1
 tag=$2
 
-# create an array to store all files with specified tag
-tagged_files=()
+# create an associative array (map) to store all files with specified tag
+declare -A tagged_files=()
 
 # markdown tag list filename syntax
 taglist_syntax="${tag}.mdtl"
@@ -28,14 +29,20 @@ do
 	if [ ! -e "$file" ]; then continue; fi
 	# if file tag list includes specified tag, then add it to tagged_files array
     if echo "$(src/get_file_tags $file)" | grep -q "$tag\s*$"; then
-		tagged_files+=( "$file" )
+	#	tagged_files+=( "$file" )
+		tagged_files[ "$file" ]="$(src/get_file_yaml_date $file)"
 		#echo "$file added"
 	fi
 
 done
 
 if [ ${#tagged_files[@]} -ne 0 ]; then
-	cat "${tagged_files[@]}" > "$taglist_syntax"
+	# sort all tagged files by most recent date and then by name, then concatenate them together
+	 cat $(for K in "${!tagged_files[@]}"; 
+				do echo $K ' ' ${tagged_files["$K"]}
+			    done | sort -k2,2r -k1,1 | sed 's/ .*//'
+		  ) > "$taglist_syntax"
+
 	echo "${#tagged_files[@]}" files added to "$taglist_syntax"
 else
 	echo "no files found"
