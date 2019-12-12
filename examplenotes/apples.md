@@ -1,7 +1,7 @@
 ---
 tags:
-  - apple
   - chocolate
+  - apple
 date: 2019-12-02T21:50:37-07:00
 ---
 

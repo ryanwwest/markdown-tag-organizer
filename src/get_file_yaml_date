@@ -1,0 +1,13 @@
+#bin/bash
+
+if [ -z "$1" ] ; then
+    echo "Error: first argument must be a file"
+    exit 1
+fi
+
+# extract the yaml front matter from markdown file
+# (this is for all yaml block matches) gsed -n "/^---/,/^---/p" a.md
+# this is for first match only
+gsed -ne '/^---/{p; :loop n; p; /^---/q; b loop}' "$1" |
+gsed -ne 's/^\s*date:\s*//p;'
+

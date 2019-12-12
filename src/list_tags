@@ -1,0 +1,30 @@
+#!/usr/bin/env bash 
+# list_tags looks at a directory or file and return a unique, sorted list of all tags therin
+
+# exit on failure
+set -e
+
+if [ -z "$1" ] ; then
+    echo "Error: first argument must be a file/directory"
+    exit 1
+fi
+
+# create an array to store all found tags
+tags=()
+
+if [[ -d $1 ]]; then
+	# loop through all markdown files in the specified directory
+	for file in $1/*.md;
+	do
+		# ensures file exists (otherwise, "*.md" can be a file if no .md files were found)
+		if [ ! -e "$file" ]; then continue; fi
+		# if file tag list includes specified tag, then add it to tagged_files array
+		tags+=( "$(src/get_file_tags $file)" )
+	done
+	echo "${tags[@]}" | tr ' ' '\n' | sort -u
+elif [[ -f $1 ]]; then
+	echo "$(src/get_file_tags $1)" | tr ' ' '\n' | sort -u
+else
+    echo "$1 is not valid"
+    exit 1
+fi

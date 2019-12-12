@@ -1,4 +1,4 @@
-#/bin/bash
+#/usr/bin/env bash
 
 # exit on failure
 set -e
@@ -18,34 +18,20 @@ tag=$2
 # create an array to store all files with specified tag
 tagged_files=()
 
-# regex to match tags (typical: "  - this_is_a_tag")
-tag_start_regex="/^\s*-\s*/"
-
 # markdown tag list filename syntax
 taglist_syntax="${tag}.mdtl"
-
-get_file_tags() {
-	# extract the yaml front matter from markdown file
-	# (this is for all yaml block matches) gsed -n "/^---/,/^---/p" a.md
-	# this is for first match only
-	if gsed -ne '/^---/{p; :loop n; p; /^---/q; b loop}' "$1" |
-	# get all tags after "tags:" identifier in yaml
-	gsed -ne "/^tags/{ :loop n; $tag_start_regex{ s$tag_start_regex/g p; b loop;} }" |
-	# if file tag list includes specified tag, then add it to tagged_files array
-	grep -q "$tag\s*$"; then
-		
-		tagged_files+=( "$1" )
-		echo "$1 added"
-	fi
-}
 
 # loop through all markdown files in the specified directory
 for file in $dir/*.md;
 do
 	# ensures file exists (otherwise, "*.md" can be a file if no .md files were found)
 	if [ ! -e "$file" ]; then continue; fi
-	# run get_file_tags("$file)
-	get_file_tags "$file"
+	# if file tag list includes specified tag, then add it to tagged_files array
+    if echo "$(src/get_file_tags $file)" | grep -q "$tag\s*$"; then
+		tagged_files+=( "$file" )
+		#echo "$file added"
+	fi
+
 done
 
 if [ ${#tagged_files[@]} -ne 0 ]; then
@@ -54,4 +40,3 @@ if [ ${#tagged_files[@]} -ne 0 ]; then
 else
 	echo "no files found"
 fi
-

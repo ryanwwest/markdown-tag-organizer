@@ -1,0 +1,17 @@
+#bin/bash
+
+if [ -z "$1" ] ; then
+    echo "Error: first argument must be a file"
+    exit 1
+fi
+
+# regex to match tags (typical: "  - this_is_a_tag")
+tag_start_regex="/^\s*-\s*/"
+
+# extract the yaml front matter from markdown file
+# (this is for all yaml block matches) gsed -n "/^---/,/^---/p" a.md
+# this is for first match only
+gsed -ne '/^---/{p; :loop n; p; /^---/q; b loop}' "$1" |
+# get all tags after "tags:" identifier in yaml
+gsed -ne "/^tags/{ :loop n; $tag_start_regex{ s$tag_start_regex/g p; b loop;} }"
+
